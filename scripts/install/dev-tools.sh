@@ -15,6 +15,47 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/common.sh"
 
 #===============================================================================
+# 安装计数器
+#===============================================================================
+
+INSTALLED_COUNT=0
+SKIPPED_COUNT=0
+FAILED_COUNT=0
+INSTALLED_TOOLS=()
+SKIPPED_TOOLS=()
+FAILED_TOOLS=()
+
+# 记录安装成功
+record_installed() {
+    ((INSTALLED_COUNT++)) || true
+    INSTALLED_TOOLS+=("$1")
+}
+
+# 记录跳过
+record_skipped() {
+    ((SKIPPED_COUNT++)) || true
+    SKIPPED_TOOLS+=("$1")
+}
+
+# 记录失败
+record_failed() {
+    ((FAILED_COUNT++)) || true
+    FAILED_TOOLS+=("$1")
+}
+
+# 重写 log_skip 以记录跳过
+log_skip() {
+    echo -e "${YELLOW}[SKIP]${NC} 已安装 $1 (版本: $2)，跳过安装"
+    record_skipped "$1"
+}
+
+# 重写 log_success 以记录安装 (仅用于工具安装)
+log_install_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    record_installed "$2"
+}
+
+#===============================================================================
 # 包管理器函数
 #===============================================================================
 
@@ -66,6 +107,7 @@ install_frontend_tools() {
         export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         log_success "nvm 安装完成"
+        record_installed "nvm"
     fi
     
     # Node.js (通过 nvm 或直接安装)
@@ -89,6 +131,7 @@ install_frontend_tools() {
             esac
         fi
         log_success "Node.js 安装完成: $(node --version)"
+        record_installed "Node.js"
     fi
     
     # npm (随 Node.js 安装)
@@ -103,6 +146,7 @@ install_frontend_tools() {
         log_info "安装 pnpm..."
         npm install -g pnpm
         log_success "pnpm 安装完成: $(pnpm --version)"
+        record_installed "pnpm"
     fi
     
     # yarn
@@ -112,6 +156,7 @@ install_frontend_tools() {
         log_info "安装 yarn..."
         npm install -g yarn
         log_success "yarn 安装完成: $(yarn --version)"
+        record_installed "yarn"
     fi
     
     # Bun
@@ -123,6 +168,7 @@ install_frontend_tools() {
         export BUN_INSTALL="$HOME/.bun"
         export PATH="$BUN_INSTALL/bin:$PATH"
         log_success "Bun 安装完成"
+        record_installed "Bun"
     fi
     
     # TypeScript
@@ -133,6 +179,7 @@ install_frontend_tools() {
         log_info "安装 TypeScript..."
         npm install -g typescript
         log_success "TypeScript 安装完成"
+        record_installed "TypeScript"
     fi
     
     # Vite
@@ -143,6 +190,7 @@ install_frontend_tools() {
         log_info "安装 Vite..."
         npm install -g vite create-vite
         log_success "Vite 安装完成"
+        record_installed "Vite"
     fi
     
     # ESLint
@@ -153,6 +201,7 @@ install_frontend_tools() {
         log_info "安装 ESLint..."
         npm install -g eslint
         log_success "ESLint 安装完成"
+        record_installed "ESLint"
     fi
     
     # Prettier
@@ -400,8 +449,16 @@ install_cloud_tools() {
     else
         log_info "安装 Docker..."
         curl -fsSL https://get.docker.com | sh
-        sudo usermod -aG docker $USER
-        log_success "Docker 安装完成 (需重新登录生效)"
+        log_success "Docker 安装完成"
+    fi
+    
+    # 确保当前用户在 docker 组中
+    if command_exists docker; then
+        if ! groups $USER | grep -q '\bdocker\b'; then
+            log_info "将用户 $USER 添加到 docker 组..."
+            sudo usermod -aG docker $USER
+            log_success "已添加到 docker 组 (需重新登录或运行 'newgrp docker' 生效)"
+        fi
     fi
     
     # Docker Compose
@@ -687,6 +744,25 @@ show_summary() {
     echo ""
     print_box_start
     echo -e "${GREEN}安装完成！${NC}"
+    echo ""
+    echo -e "  📊 ${CYAN}安装摘要${NC}"
+    echo -e "  ─────────────────────────────"
+    echo -e "  ${GREEN}✓ 新安装:${NC} $INSTALLED_COUNT 个工具"
+    echo -e "  ${YELLOW}○ 已跳过:${NC} $SKIPPED_COUNT 个工具 (已存在)"
+    if [[ $FAILED_COUNT -gt 0 ]]; then
+        echo -e "  ${RED}✗ 失败:${NC}   $FAILED_COUNT 个工具"
+    fi
+    echo ""
+    if [[ ${#INSTALLED_TOOLS[@]} -gt 0 ]]; then
+        echo -e "  ${GREEN}新安装的工具:${NC}"
+        printf '    %s\n' "${INSTALLED_TOOLS[@]}"
+        echo ""
+    fi
+    if [[ ${#FAILED_TOOLS[@]} -gt 0 ]]; then
+        echo -e "  ${RED}安装失败的工具:${NC}"
+        printf '    %s\n' "${FAILED_TOOLS[@]}"
+        echo ""
+    fi
     print_box_end
     echo ""
     echo -e "${YELLOW}提示:${NC}"
