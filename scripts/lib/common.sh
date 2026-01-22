@@ -47,9 +47,17 @@ log_skip() {
 
 print_header() {
     local title=$1
+    local width=64
+    # 计算显示宽度（中文字符占2个宽度）
+    local display_width=$(echo -n "$title" | wc -m)
+    local chinese_chars=$(echo -n "$title" | grep -oP '[\x{4e00}-\x{9fff}]' 2>/dev/null | wc -l || echo 0)
+    local title_width=$((display_width + chinese_chars))
+    local pad_left=$(( (width - title_width) / 2 ))
+    local pad_right=$(( width - title_width - pad_left ))
+    
     echo -e "${CYAN}"
     echo "╔════════════════════════════════════════════════════════════════╗"
-    printf "║%*s%s%*s║\n" $(( (64 - ${#title}) / 2 )) "" "$title" $(( (65 - ${#title}) / 2 )) ""
+    printf "║%${pad_left}s%s%${pad_right}s║\n" "" "$title" ""
     echo "╚════════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
 }
