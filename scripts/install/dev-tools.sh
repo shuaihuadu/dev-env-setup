@@ -8,74 +8,15 @@
 
 set -e
 
+# 获取脚本目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 加载公共函数库
+source "$SCRIPT_DIR/../lib/common.sh"
+
 #===============================================================================
-# 颜色和工具函数
+# 包管理器函数
 #===============================================================================
-
-if [ -t 1 ]; then
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[1;33m'
-    BLUE='\033[0;34m'
-    CYAN='\033[0;36m'
-    NC='\033[0m'
-else
-    RED='' GREEN='' YELLOW='' BLUE='' CYAN='' NC=''
-fi
-
-print_header() {
-    echo -e "${CYAN}"
-    echo "╔════════════════════════════════════════════════════════════════╗"
-    echo "║              开发工具安装脚本 v1.0                             ║"
-    echo "╚════════════════════════════════════════════════════════════════╝"
-    echo -e "${NC}"
-}
-
-print_section() {
-    echo ""
-    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${CYAN}  $1${NC}"
-    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-}
-
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-log_skip() {
-    echo -e "${YELLOW}[SKIP]${NC} 已安装 $1 (版本: $2)，跳过安装"
-}
-
-# 检查命令是否存在
-command_exists() {
-    command -v "$1" &> /dev/null
-}
-
-# 检测操作系统
-detect_os() {
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "macos"
-    elif [[ -f /etc/os-release ]]; then
-        . /etc/os-release
-        echo "$ID"
-    else
-        echo "unknown"
-    fi
-}
-
-OS=$(detect_os)
 
 # 包管理器安装函数
 install_package() {
@@ -744,9 +685,9 @@ show_summary() {
     command_exists mkcert && echo "  ✓ mkcert: installed"
     
     echo ""
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
+    print_box_start
     echo -e "${GREEN}安装完成！${NC}"
-    echo -e "${CYAN}════════════════════════════════════════════════════════════════${NC}"
+    print_box_end
     echo ""
     echo -e "${YELLOW}提示:${NC}"
     echo "  - 部分工具需要重新打开终端或重新登录才能生效"
@@ -759,7 +700,7 @@ show_summary() {
 #===============================================================================
 
 main() {
-    print_header
+    print_header "开发工具安装脚本 v1.1"
     
     log_info "检测到系统: $OS"
     echo ""

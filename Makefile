@@ -14,7 +14,7 @@ GREEN := \033[0;32m
 YELLOW := \033[1;33m
 NC := \033[0m
 
-.PHONY: help setup tools ssh-port install dotfiles list clean
+.PHONY: help setup tools ssh-port ssh-status install dotfiles list clean
 
 #===============================================================================
 # 帮助信息
@@ -37,11 +37,20 @@ help: ## 显示帮助信息
 
 tools: ## 安装全部开发工具 (前端/后台/数据库/云)
 	@echo -e "$(CYAN)安装开发工具...$(NC)"
-	@sudo bash $(SCRIPTS_DIR)/install-dev-tools.sh
+	@chmod +x $(SCRIPTS_DIR)/install/dev-tools.sh
+	@chmod +x $(SCRIPTS_DIR)/lib/common.sh
+	@sudo bash $(SCRIPTS_DIR)/install/dev-tools.sh
 
 ssh-port: ## 修改 SSH 端口
 	@echo -e "$(CYAN)运行 SSH 端口修改工具...$(NC)"
-	@sudo bash $(SCRIPTS_DIR)/change-ssh-port.sh
+	@chmod +x $(SCRIPTS_DIR)/ssh/change-port.sh
+	@chmod +x $(SCRIPTS_DIR)/lib/common.sh
+	@sudo bash $(SCRIPTS_DIR)/ssh/change-port.sh
+
+ssh-status: ## 查看当前 SSH 端口状态
+	@chmod +x $(SCRIPTS_DIR)/ssh/status.sh
+	@chmod +x $(SCRIPTS_DIR)/lib/common.sh
+	@bash $(SCRIPTS_DIR)/ssh/status.sh
 
 #===============================================================================
 # 安装命令
@@ -49,16 +58,22 @@ ssh-port: ## 修改 SSH 端口
 
 install: ## 将脚本安装到 /usr/local/bin
 	@echo -e "$(CYAN)安装脚本到 /usr/local/bin...$(NC)"
-	@sudo install -m 755 $(SCRIPTS_DIR)/change-ssh-port.sh /usr/local/bin/change-ssh-port
-	@sudo install -m 755 $(SCRIPTS_DIR)/install-dev-tools.sh /usr/local/bin/install-dev-tools
+	@sudo mkdir -p /usr/local/lib/dev-env-setup
+	@sudo cp $(SCRIPTS_DIR)/lib/common.sh /usr/local/lib/dev-env-setup/
+	@sudo install -m 755 $(SCRIPTS_DIR)/ssh/change-port.sh /usr/local/bin/change-ssh-port
+	@sudo install -m 755 $(SCRIPTS_DIR)/install/dev-tools.sh /usr/local/bin/install-dev-tools
+	@sudo install -m 755 $(SCRIPTS_DIR)/ssh/status.sh /usr/local/bin/ssh-status
 	@echo -e "$(GREEN)安装完成！$(NC)"
 	@echo "  - change-ssh-port"
 	@echo "  - install-dev-tools"
+	@echo "  - ssh-status"
 
 uninstall: ## 从 /usr/local/bin 卸载脚本
 	@echo -e "$(YELLOW)卸载脚本...$(NC)"
 	@sudo rm -f /usr/local/bin/change-ssh-port
 	@sudo rm -f /usr/local/bin/install-dev-tools
+	@sudo rm -f /usr/local/bin/ssh-status
+	@sudo rm -rf /usr/local/lib/dev-env-setup
 	@echo -e "$(GREEN)卸载完成！$(NC)"
 
 #===============================================================================
@@ -87,17 +102,26 @@ dotfiles: ## 安装配置文件 (dotfiles) 到 $HOME
 list: ## 列出所有可用脚本
 	@echo -e "$(CYAN)可用脚本:$(NC)"
 	@echo ""
-	@ls -la $(SCRIPTS_DIR)/*.sh 2>/dev/null || echo "  没有找到脚本"
+	@echo -e "  $(YELLOW)安装脚本:$(NC)"
+	@ls -la $(SCRIPTS_DIR)/install/*.sh 2>/dev/null || echo "    没有找到脚本"
+	@echo ""
+	@echo -e "  $(YELLOW)SSH 脚本:$(NC)"
+	@ls -la $(SCRIPTS_DIR)/ssh/*.sh 2>/dev/null || echo "    没有找到脚本"
+	@echo ""
+	@echo -e "  $(YELLOW)公共库:$(NC)"
+	@ls -la $(SCRIPTS_DIR)/lib/*.sh 2>/dev/null || echo "    没有找到脚本"
 	@echo ""
 
 check: ## 检查脚本语法
 	@echo -e "$(CYAN)检查脚本语法...$(NC)"
-	@for script in $(SCRIPTS_DIR)/*.sh; do \
-		echo -n "  $$script: "; \
-		if bash -n "$$script" 2>/dev/null; then \
-			echo -e "$(GREEN)OK$(NC)"; \
-		else \
-			echo -e "$(YELLOW)ERROR$(NC)"; \
+	@for script in $(SCRIPTS_DIR)/lib/*.sh $(SCRIPTS_DIR)/install/*.sh $(SCRIPTS_DIR)/ssh/*.sh; do \
+		if [ -f "$$script" ]; then \
+			echo -n "  $$script: "; \
+			if bash -n "$$script" 2>/dev/null; then \
+				echo -e "$(GREEN)OK$(NC)"; \
+			else \
+				echo -e "$(YELLOW)ERROR$(NC)"; \
+			fi; \
 		fi; \
 	done
 

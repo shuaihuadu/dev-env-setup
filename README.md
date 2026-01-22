@@ -16,8 +16,13 @@ dev-env-setup/
 ├── install.sh              # 一键安装入口
 ├── Makefile                # 常用命令
 ├── scripts/
-│   ├── install-dev-tools.sh    # 开发工具安装
-│   └── change-ssh-port.sh      # SSH 端口修改
+│   ├── lib/
+│   │   └── common.sh           # 公共函数库
+│   ├── install/
+│   │   └── dev-tools.sh        # 开发工具安装
+│   └── ssh/
+│       ├── change-port.sh      # SSH 端口修改
+│       └── status.sh           # SSH 状态查看
 └── configs/                # 配置文件
     ├── .bashrc
     ├── .gitconfig
@@ -43,13 +48,15 @@ curl -fsSL https://raw.githubusercontent.com/shuaihua/dev-env-setup/main/install
 ## 📋 可用命令
 
 ```bash
-make help       # 显示帮助信息
-make tools      # 安装全部开发工具
-make ssh-port   # 修改 SSH 端口
-make dotfiles   # 安装配置文件
-make install    # 安装脚本到系统
-make check      # 检查脚本语法
-make list       # 列出所有脚本
+make help        # 显示帮助信息
+make tools       # 安装全部开发工具
+make ssh-port    # 修改 SSH 端口
+make ssh-status  # 查看当前 SSH 端口状态
+make dotfiles    # 安装配置文件
+make install     # 安装脚本到系统
+make uninstall   # 卸载脚本
+make check       # 检查脚本语法
+make list        # 列出所有脚本
 ```
 
 ## 🔧 安装的工具
