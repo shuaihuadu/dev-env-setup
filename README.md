@@ -50,14 +50,16 @@ curl -fsSL https://raw.githubusercontent.com/shuaihuadu/dev-env-setup/main/insta
 ## 📋 可用命令
 
 ```bash
-make help          # 显示帮助信息
-make install-tools # 安装开发工具（已安装的自动跳过）
-make ssh-port      # 修改 SSH 端口
-make ssh-status    # 查看当前 SSH 端口状态
-make dotfiles      # 安装配置文件
-make check         # 检查脚本语法
-make list          # 列出所有脚本
-make clean         # 清理临时文件 (*.bak, *~)
+make help                        # 显示帮助信息
+make install-tools               # 安装开发工具（已安装的自动跳过）
+make ssh-port                    # 修改 SSH 端口
+make ssh-status                  # 查看当前 SSH 端口状态
+make dotfiles                    # 安装配置文件（支持逐个确认）
+make set-terminal-theme          # 选择并设置 Oh My Zsh 主题（自动安装 Oh My Zsh）
+make restore-terminal-to-default # 恢复默认终端配置（macOS→zsh, Linux→bash）
+make check                       # 检查脚本语法
+make list                        # 列出所有脚本
+make clean                       # 清理临时文件 (*.bak, *~)
 ```
 
 > 💡 `make clean` 只清理项目目录内的临时文件（备份文件 `*.bak` 和编辑器临时文件 `*~`），不会影响 `$HOME` 目录。
@@ -150,9 +152,37 @@ kga   → kubectl get all
 ### 安装说明
 
 运行 `make dotfiles` 时会：
+- ✅ 逐个询问是否安装每个配置文件（支持跳过）
+- ✅ Git 配置时会交互式输入用户名和邮箱
 - ✅ 自动备份已存在的配置文件（备份为 `.bak` 文件）
 - ✅ 将新配置复制到 `$HOME` 目录
 - ✅ 运行 `source ~/.bashrc` 或重新登录后生效
+
+### Oh My Zsh 主题设置
+
+使用 `make set-terminal-theme` 可以：
+- 🎨 选择 10+ 个流行的 Oh My Zsh 主题（如 agnoster, bira, ys 等）
+- 🔍 自动检测并提示安装 Oh My Zsh（如未安装）
+- 💾 自动备份当前配置，设置失败会自动恢复
+- 🌈 支持所有 [Oh My Zsh 内置主题](https://github.com/ohmyzsh/ohmyzsh/wiki/Themes)
+
+```bash
+make set-terminal-theme
+# 根据提示选择主题并确认
+source ~/.zshrc  # 生效
+```
+
+### 恢复默认配置
+
+如果配置出错或想重置，使用 `make restore-terminal-to-default`：
+- 🔄 macOS 自动恢复 `.zshrc`，Linux 自动恢复 `.bashrc`
+- 💾 自动备份当前配置（带时间戳）
+- ✅ 失败时自动回滚
+
+```bash
+make restore-terminal-to-default
+# 确认后恢复到项目的默认配置
+```
 
 ### 别名与系统命令冲突
 

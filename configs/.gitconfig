@@ -2,9 +2,11 @@
 # 由 dev-env-setup 生成
 
 [user]
-    # 请修改为你的信息
-    name = Your Name
-    email = your.email@example.com
+    # TODO: 首次使用请修改为你的真实信息
+    # 或使用命令: git config --global user.name "你的名字"
+    #             git config --global user.email "你的邮箱"
+    name = YOUR_NAME
+    email = YOUR_EMAIL@example.com
 
 [core]
     editor = vim

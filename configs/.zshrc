@@ -34,18 +34,24 @@ autoload -Uz colors && colors
 # Git 分支显示
 autoload -Uz vcs_info
 precmd() { vcs_info }
-zstyle ':vcs_info:git:*' formats ' (%b)'
+zstyle ':vcs_info:git:*' formats ' (%F{yellow}%b%f)'
+zstyle ':vcs_info:*' enable git
 setopt PROMPT_SUBST
 
-# 彩色提示符
-PROMPT='%F{green}%n@%m%f:%F{blue}%~%f%F{yellow}${vcs_info_msg_0_}%f$ '
+# 彩色提示符 (两行显示，带完整日期时间)
+PROMPT='%F{cyan}╭─%f %F{green}%n@%m%f %F{blue}%~%f${vcs_info_msg_0_} %F{244}[%D{%Y-%m-%d %H:%M:%S}]%f
+%F{cyan}╰─%f %F{magenta}➜%f '
 
 #===============================================================================
 # 别名
 #===============================================================================
 
-# 颜色支持
-alias ls='ls --color=auto'
+# 颜色支持 (macOS 兼容)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias ls='ls -G'
+else
+    alias ls='ls --color=auto'
+fi
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
@@ -181,7 +187,19 @@ fd() {
 # Oh My Zsh (如果安装了)
 if [ -d "$HOME/.oh-my-zsh" ]; then
     export ZSH="$HOME/.oh-my-zsh"
-    # 可在此处配置插件: plugins=(git docker kubectl)
+    ZSH_THEME=""  # 使用自定义提示符
+    plugins=(git docker kubectl macos colored-man-pages)
+    source $ZSH/oh-my-zsh.sh
+fi
+
+# zsh-autosuggestions (如果通过 Homebrew 安装)
+if [ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+    source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+# zsh-syntax-highlighting (如果通过 Homebrew 安装，必须放在最后)
+if [ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+    source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 
 # 加载本地配置
